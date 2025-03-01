@@ -1,5 +1,4 @@
 import java.util.*;
-
 /*
 * Class that contains various static helper functions / variables to be used in other classes.
 */
