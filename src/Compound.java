@@ -1,3 +1,5 @@
+import org.w3c.dom.html.HTMLLegendElement;
+
 import java.util.*;
 
 /*
@@ -115,30 +117,33 @@ public class Compound {
         }
 
         // we initialize the last carbon
-        compound[compound.length - 1] = new Element("C", 4);
+        if(compound[compound.length - 1] == null)
+            compound[compound.length - 1] = new Element("C", 4);
         compound[compound.length - 1].setConnections(endChainConnections); // and set its connections
 
-        // we thirdly give the connections for the rest of the carbons that lie in the middle of the chain
-        for (int i = 1; i < compound.length - 1; i++) {
-            // if the ith carbon has not been initialized, we initialize it
-            if (compound[i] == null) {
-                compound[i] = new Element("C", 4);
-            }
-            // same goes for (i + 1)th carbon
-            if (compound[i + 1] == null && i + 1 < compound.length) {
-                compound[i + 1] = new Element("C", 4);
-            }
+        if(skeletonSize > 2) {
+            // we thirdly give the connections for the rest of the carbons that lie in the middle of the chain
+            for (int i = 1; i < compound.length - 1; i++) {
+                // if the ith carbon has not been initialized, we initialize it
+                if (compound[i] == null) {
+                    compound[i] = new Element("C", 4);
+                }
+                // same goes for (i + 1)th carbon
+                if (compound[i + 1] == null && i + 1 < compound.length) {
+                    compound[i + 1] = new Element("C", 4);
+                }
 
-            // allocate space for the connections of the carbon that lies in the middle
-            Element[] midChainConnections = new Element[4];
-            midChainConnections[0] = compound[i - 1]; // first connection would be the carbon that lies to the left
-            midChainConnections[3] = compound[i + 1]; // fourth connection would be the carbon that lies to the right
-            // second and third connections would just be hydrogen by default
-            midChainConnections[1] = new Element("H", 1);
-            midChainConnections[2] = new Element("H", 1);
+                // allocate space for the connections of the carbon that lies in the middle
+                Element[] midChainConnections = new Element[4];
+                midChainConnections[0] = compound[i - 1]; // first connection would be the carbon that lies to the left
+                midChainConnections[3] = compound[i + 1]; // fourth connection would be the carbon that lies to the right
+                // second and third connections would just be hydrogen by default
+                midChainConnections[1] = new Element("H", 1);
+                midChainConnections[2] = new Element("H", 1);
 
-            // set connection for the ith carbon
-            compound[i].setConnections(midChainConnections);
+                // set connection for the ith carbon
+                compound[i].setConnections(midChainConnections);
+            }
         }
 
     }
@@ -158,6 +163,7 @@ public class Compound {
         *       as any ordered mapping datastructures like a dictionary can be used
         */
         LinkedHashMap<String, List<Integer>> substituents = Helper.getSubstituents(compoundIUPACName);
+        System.out.println(substituents);
 
         // we iterate through each substituent in the map
         for (Map.Entry<String, List<Integer>> entry : substituents.entrySet()) {
@@ -175,11 +181,18 @@ public class Compound {
                 // we subtract the position number by 1 as positions are 1 indexed in IUPAC names
                 Element ithCarbon = compound[position - 1]; // get the carbon at given position
 
-                // 'numSubstitutionsLeft' basically refers to "number of hydrogen to replace with substituent"
-                // the value of this is equal to the valency of the substituent as the valency of hydrogen is 1
-                // therefore numSubstitutionsLeft = substituentValency / hydrogenValency
-                // = numSubstitutionsLeft = substituentValency
-                int numSubstitutionsLeft = symbolValency.valency;
+                int numSubstitutionsLeft = 0;
+
+                if(Helper.isElement(substituentName)) {
+                    // 'numSubstitutionsLeft' basically refers to "number of hydrogen to replace with substituent"
+                    // the value of this is equal to the valency of the substituent as the valency of hydrogen is 1
+                    // therefore numSubstitutionsLeft = substituentValency / hydrogenValency
+                    // = numSubstitutionsLeft = substituentValency
+                    numSubstitutionsLeft = symbolValency.valency;
+                }
+                else {
+                    numSubstitutionsLeft = 1;
+                }
 
                 // 'numSpotsLeftForSubstitutions' basically refers to "how many hydrogen exist to replace with substituent?"
                 // we need this as we assume only hydrogen can be replaced with substituent (may change in the future)
@@ -197,19 +210,33 @@ public class Compound {
                 // the substitutions shall only take place if the numSpotsLeftForSubstitutions is greater than
                 // or equal to number of substituents we must insert
                 if (numSpotsLeftForSubstitutions >= numSubstitutionsLeft) {
+                    // if the substituent is not an alkyl
+                    if(Helper.isElement(substituentName)) {
+                        // we first create the element we want to insert as a substituent
+                        Element jthConnection = new Element(symbolValency.symbol, symbolValency.valency);
 
-                    // we first create the element we want to insert as a substituent
-                    Element jthConnection = new Element(symbolValency.symbol, symbolValency.valency);
+                        // iterate through the connections of ithCarbon
+                        for (int j = 0; j < ithCarbon.getConnections().length; j++) {
+                            // if connection is a hydrogen, we substitute it with the substituent
+                            if (ithConnections[j].getSymbol().equals("H") && numSubstitutionsLeft > 0) {
+                                ithConnections[j] = jthConnection;
 
-                    // iterate through the connections of ithCarbon
-                    for (int j = 0; j < ithCarbon.getConnections().length; j++) {
-                        // if connection is a hydrogen, we substitute it with the substituent
-                        if (ithConnections[j].getSymbol().equals("H") && numSubstitutionsLeft > 0) {
-                            ithConnections[j] = jthConnection;
-
-                            // the substituent is in turn connected to the ith carbon
-                            jthConnection.setConnection(ithCarbon);
-                            numSubstitutionsLeft--;
+                                // the substituent is in turn connected to the ith carbon
+                                jthConnection.setConnection(ithCarbon);
+                                numSubstitutionsLeft--;
+                            }
+                        }
+                    }
+                    // else we attempt to insert an alkyl group as the substituent
+                    else {
+                        CompoundSubstituent compoundSubstituent = new CompoundSubstituent(substituentName, ithCarbon);
+                        // iterate through the connections of ithCarbon
+                        for (int j = 0; j < ithCarbon.getConnections().length; j++) {
+                            // if connection is a hydrogen, we substitute it with the substituent
+                            if (ithConnections[j].getSymbol().equals("H") && numSubstitutionsLeft > 0) {
+                                ithConnections[j] = compoundSubstituent.compound[0];
+                                numSubstitutionsLeft--;
+                            }
                         }
                     }
                 }
@@ -227,55 +254,94 @@ public class Compound {
     * function that finds the topological indeces
     * the computation in written form can be viewed in the read me section of the github repository
     */
-    void getTopologicalIndeces() {
+    public void findTopologicalIndeces() {
 
-        // we need the frequencies of each valency pair, so to store them we create a hash map
-        // whose key is the list of the two valencies of the pair, and value is the frequency
+        Set<Element> visited = new HashSet<>();
         HashMap<List<Integer>, Integer> frequencies = new HashMap<>();
 
-        // iterating through each carbon of the main carbon chain
-        for(Element element: compound) {
-            // get the connections of the ith carbon
-            Element[] ithConnections = element.getConnections();
+        traverseAndUpdateTopologicalIndeces(compound[0], visited, frequencies);
 
-            // iterate through the connections of the ith carbon
-            for(int j = 0; j < ithConnections.length; j++) {
-                if(ithConnections[j] != null) {
-                    // create a list of max size 2
-                    List<Integer> elementValencies = new ArrayList<>(2);
+        System.out.println(frequencies);
 
-                    /*
-                    * NOTE
-                    * valency pairs go both way, for example let us consider a bond C-H
-                    * valency of carbon is 4 and valency of hydrogen is 1
-                    * so two pairs can be produced from this bond alone which are as follows:
-                    * pair1 = (4, 1) [valency of carbon, valency of hydrogen]
-                    * pair2 = (1, 4) [valency of hydrogen, valency of carbon]
-                    * thus, order of the valency matters
-                    * however a pair of (1, 4) made from connection between chlorine and carbon and
-                    * a pair of (1, 4) made from connection between hydrogen and carbon are equivalent
-                    *
-                    * the above stated rules apply for all bonds
-                    */
+    }
+    public void traverseAndUpdateTopologicalIndeces(Element start, Set<Element> visited, HashMap<List<Integer>, Integer> frequencies) {
 
-                    // place the carbon's valency and connection's valency and increment its frequency in the hashmap
-                    elementValencies.add(element.getValency());
-                    elementValencies.add(ithConnections[j].getValency());
-                    Helper.incrementFrequency(frequencies, elementValencies);
-
-                    // place the valencies in reverse and increment its frequency in the hashmap
-                    elementValencies.set(0, ithConnections[j].getValency());
-                    elementValencies.set(1, element.getValency());
-                    Helper.incrementFrequency(frequencies, elementValencies);
+        visited.add(start);
+        Queue<Element> toVisitCarbons = new LinkedList<>();
+        Element[] connections = start.getConnections();
+        for(int i = 0; i < connections.length; i++) {
+            Element ithConnection = connections[i];
+            if(ithConnection != null) {
+                if(Objects.equals(ithConnection.getSymbol(), "C")) {
+                    toVisitCarbons.offer(ithConnection);
                 }
+                List<Integer> elementValencies = new ArrayList<>(2);
+
+                /*
+                 * NOTE
+                 * valency pairs go both way, for example let us consider a bond C-H
+                 * valency of carbon is 4 and valency of hydrogen is 1
+                 * so two pairs can be produced from this bond alone which are as follows:
+                 * pair1 = (4, 1) [valency of carbon, valency of hydrogen]
+                 * pair2 = (1, 4) [valency of hydrogen, valency of carbon]
+                 * thus, order of the valency matters
+                 * however a pair of (1, 4) made from connection between chlorine and carbon and
+                 * a pair of (1, 4) made from connection between hydrogen and carbon are equivalent
+                 *
+                 * the above stated rules apply for all bonds
+                 */
+
+                // place the carbon's valency and connection's valency and increment its frequency in the hashmap
+                elementValencies.add(start.getValency());
+                elementValencies.add(ithConnection.getValency());
+                Helper.incrementFrequency(frequencies, elementValencies);
+
+                // place the valencies in reverse and increment its frequency in the hashmap
+                elementValencies.set(0, ithConnection.getValency());
+                elementValencies.set(1, start.getValency());
+                Helper.incrementFrequency(frequencies, elementValencies);
             }
         }
 
-        // print the hashmap
-        System.out.println("Topological Indeces:");
-        System.out.println(frequencies);
+        while(!toVisitCarbons.isEmpty()) {
+            Element nextCarbon = toVisitCarbons.poll();
+            if(!visited.contains(nextCarbon)) {
+                traverseAndUpdateTopologicalIndeces(nextCarbon, visited, frequencies);
+            }
+        }
+
     }
 
+    public void printCompound() {
+        traverseAndPrint(compound[0], 0, new HashSet<>());
+    }
+    private void traverseAndPrint(Element start, int depth, Set<Element> visited) {
+        Helper.printTabs(depth);
+        System.out.print("[ ");
+        Queue<Element> toVisitCarbons = new LinkedList<>();
+        visited.add(start);
+        for(int i = 0; i < start.getConnections().length; i++) {
+            Element ithConnection = start.getConnections()[i];
+            if(ithConnection != null) {
+                if(Objects.equals(ithConnection.getSymbol(), "C")) {
+                    toVisitCarbons.offer(ithConnection);
+                }
+                System.out.print(ithConnection.getSymbol() + ", ");
+            }
+        }
+        System.out.println("] \n");
+        while(!toVisitCarbons.isEmpty()) {
+            Element nextCarbon = toVisitCarbons.poll();
+            if(!visited.contains(nextCarbon)) {
+                if(!Helper.contains(compound, nextCarbon)) {
+                    traverseAndPrint(nextCarbon, depth + 1, visited);
+                }
+                else {
+                    traverseAndPrint(nextCarbon, depth, visited);
+                }
+            }
+        }
+    }
 
     // overriding of toString function to be able to print a Class object of class Compound
     @Override

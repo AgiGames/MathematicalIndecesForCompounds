@@ -45,6 +45,33 @@ public class Helper {
 
     }
 
+    // function that returns the alkyl name from the given substituent name, if it exists
+    public static String getAlkylName(String name) {
+
+        if (name == null) {
+            throw new RuntimeException("Invalid Name! (name = null)");
+        }
+
+        String[] alkyls = {
+                "methyl", "ethyl", "propyl", "butyl", "pentyl",
+                "hexyl", "heptyl", "octyl", "nonyl", "decyl"
+        };
+
+        // substituent names have the alkyl names at the end, so we use the ends with function for each of
+        // the possible substituent name
+        for (String alkyl : alkyls) {
+            if (name.endsWith(alkyl)) {
+                return alkyl;
+            }
+        }
+
+        return "";
+
+    }
+
+    public static boolean isElement(String name) {
+        return getAlkylName(name) == null;
+    }
 
     // function that extracts the substituents and their positions from the given IUPAC name
     // and returns them in a hash map
@@ -145,6 +172,27 @@ public class Helper {
         // if the map already has the value at given key, it takes the value, or it takes the value to be 0
         // and increments it, and places it the new value at the key
         map.put(key, map.getOrDefault(key, 0) + 1);
+
+    }
+
+    public static void printTabs(int numTabs) {
+
+        for(int i = 0; i < numTabs; i++) {
+            System.out.print("\t");
+        }
+
+    }
+
+    public static boolean contains(Element[] elements, Element keyElement) {
+
+        boolean contains = false;
+        for (Element element : elements) {
+            if (element.equals(keyElement)) {
+                contains = true;
+                break;
+            }
+        }
+        return contains;
 
     }
 
