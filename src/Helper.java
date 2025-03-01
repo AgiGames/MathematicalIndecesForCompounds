@@ -5,7 +5,6 @@ import java.util.*;
 */
 public class Helper {
 
-
     /*
     * elementReferenceMap contains the symbol and valency of various substituents as the value, with the key being
     * how the substituents are represented in IUPAC names
