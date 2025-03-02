@@ -2,13 +2,14 @@
 * Class that represents any given element.
 * Fundamental unit for the Compound class and also the operations being performed in and for it.
 */
+
 public class Element {
 
-    private String symbol = ""; // chemical symbol of the element
-    private int valency = 0; // valency of the element
+    private final String symbol; // chemical symbol of the element
+    private final int valency; // valency of the element
     private Element[] connections; // elements to which this element is connected to, represented as an array of elements
-    private int bondsLeft = 0; // how many more bonds this element can afford for more connections
-    private int elementID = 0; // Id of this element (automatically incremented upon creation)
+    private int bondsLeft; // how many more bonds this element can afford for more connections
+    private final int elementID; // id of this element (automatically incremented upon creation)
 
     private static int idCounter = 0; // static counter to track element IDs
 

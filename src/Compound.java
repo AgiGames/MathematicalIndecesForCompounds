@@ -1,5 +1,3 @@
-import org.w3c.dom.html.HTMLLegendElement;
-
 import java.util.*;
 
 /*
@@ -10,7 +8,7 @@ import java.util.*;
 
 public class Compound {
 
-    String compoundIUPACName = ""; // IUPAC name of the compound
+    String compoundIUPACName; // IUPAC name of the compound
     Element[] compound; // element array that represents the skeleton of the compound
 
     Compound(String compoundIUPACName) {
@@ -57,7 +55,7 @@ public class Compound {
                 break;
         }
 
-        // function call to insert substituents onto the skeleton after construction of the skeletoon
+        // function call to insert substituents onto the skeleton after construction of the skeleton
         insertSubstituents();
 
     }
@@ -85,12 +83,14 @@ public class Compound {
         }
 
         // we initialize the first element of the chain with a carbon whose valency is 4
-        compound[0] = new Element("C", 4);
+        if(compound[0] == null) {
+            compound[0] = new Element("C", 4);
+        }
 
         // if the given skeleton size is 1, then that would mean there would only be 1 carbon in the chain
         if(skeletonSize == 1) {
             // therefore even the 4th connection of the first carbon would also the hydrogen by default
-            startChainConnections[3] = new Element("H", 1);;
+            startChainConnections[3] = new Element("H", 1);
             compound[0].setConnections(startChainConnections); // set the connections of the only carbon
             // since all connections of the only carbon are filled, we exit from this function
             return;
@@ -98,7 +98,9 @@ public class Compound {
         // if the given skeleton size is not 1, then that would mean there would be more than 1 carbon in the chain
         else {
             // therefore the 4th connection of the first carbon would be the 2nd carbon in the chain
-            compound[1] = new Element("C", 4); // initialize second carbon
+            if(compound[1] == null) {
+                compound[1] = new Element("C", 4); // initialize second carbon
+            }
             startChainConnections[3] = compound[1]; // set the 4th connection of first carbon as 2nd carbon
             compound[0].setConnections(startChainConnections); // set the connections of the first carbon
         }
@@ -121,6 +123,10 @@ public class Compound {
             compound[compound.length - 1] = new Element("C", 4);
         compound[compound.length - 1].setConnections(endChainConnections); // and set its connections
 
+        // if the skeleton size is less than or equal to 2, then
+        // the code written before this point would have successfully initialized all connections for
+        // all carbon in the skeleton
+        // thus we only continue if skeleton size is greater than 2
         if(skeletonSize > 2) {
             // we thirdly give the connections for the rest of the carbons that lie in the middle of the chain
             for (int i = 1; i < compound.length - 1; i++) {
@@ -181,7 +187,7 @@ public class Compound {
                 // we subtract the position number by 1 as positions are 1 indexed in IUPAC names
                 Element ithCarbon = compound[position - 1]; // get the carbon at given position
 
-                int numSubstitutionsLeft = 0;
+                int numSubstitutionsLeft;
 
                 if(Helper.isElement(substituentName)) {
                     // 'numSubstitutionsLeft' basically refers to "number of hydrogen to replace with substituent"
@@ -191,6 +197,10 @@ public class Compound {
                     numSubstitutionsLeft = symbolValency.valency;
                 }
                 else {
+                    // if the substituent is a compound rather than an element
+                    // number of hydrogen to replace substituent with will be equal to 1
+                    // because at most the substituent will have 1 bond left to afford to connect with
+                    // carbon chain
                     numSubstitutionsLeft = 1;
                 }
 
@@ -252,29 +262,45 @@ public class Compound {
 
     /*
     * function that finds the topological indeces
-    * the computation in written form can be viewed in the read me section of the github repository
+    * the computation in written form can be viewed in the read me section of the GitHub repository
     */
     public void findTopologicalIndeces() {
 
+        // we use a search algorithm akin to breadth first search (BFS)
+        // where we start the search from the first carbon in the skeleton
+
+        // hash set to prevent visiting already visited elements by tracking the visited elements
         Set<Element> visited = new HashSet<>();
+
+        // frequencies of valency pair will be stored in this hash map
+        // key is the list of the two valencies of the pair
+        // key is the frequency of those valency pairs
         HashMap<List<Integer>, Integer> frequencies = new HashMap<>();
 
+        // traverse the entire compound including substituents to find topological indeces
         traverseAndUpdateTopologicalIndeces(compound[0], visited, frequencies);
 
         System.out.println(frequencies);
 
     }
-    public void traverseAndUpdateTopologicalIndeces(Element start, Set<Element> visited, HashMap<List<Integer>, Integer> frequencies) {
+    public void traverseAndUpdateTopologicalIndeces(Element currentElement, Set<Element> visited, HashMap<List<Integer>, Integer> frequencies) {
 
-        visited.add(start);
+        visited.add(currentElement); // add the current carbon to visited hash map
+
+        // a queue to store the carbons that must be visited next
         Queue<Element> toVisitCarbons = new LinkedList<>();
-        Element[] connections = start.getConnections();
-        for(int i = 0; i < connections.length; i++) {
-            Element ithConnection = connections[i];
-            if(ithConnection != null) {
-                if(Objects.equals(ithConnection.getSymbol(), "C")) {
+
+        Element[] connections = currentElement.getConnections(); // get all connections of current carbon
+
+        // iterate through connections
+        for (Element ithConnection : connections) {
+            if (ithConnection != null) {
+                // if the connection is a carbon, we append it to the queue to visit it later
+                if (Objects.equals(ithConnection.getSymbol(), "C")) {
                     toVisitCarbons.offer(ithConnection);
                 }
+
+                // create a list of max size 2
                 List<Integer> elementValencies = new ArrayList<>(2);
 
                 /*
@@ -292,17 +318,19 @@ public class Compound {
                  */
 
                 // place the carbon's valency and connection's valency and increment its frequency in the hashmap
-                elementValencies.add(start.getValency());
+                elementValencies.add(currentElement.getValency());
                 elementValencies.add(ithConnection.getValency());
                 Helper.incrementFrequency(frequencies, elementValencies);
 
                 // place the valencies in reverse and increment its frequency in the hashmap
                 elementValencies.set(0, ithConnection.getValency());
-                elementValencies.set(1, start.getValency());
+                elementValencies.set(1, currentElement.getValency());
                 Helper.incrementFrequency(frequencies, elementValencies);
             }
         }
 
+        // now we visit all carbons that is connected to the current carbon
+        // if and only if the carbon is not already visited
         while(!toVisitCarbons.isEmpty()) {
             Element nextCarbon = toVisitCarbons.poll();
             if(!visited.contains(nextCarbon)) {
@@ -312,53 +340,64 @@ public class Compound {
 
     }
 
+    /*
+    * function to print out the compound along with main carbons, substituents and all connections
+    * we approach this problem using the same traversal method we used to find the topological indeces
+    */
     public void printCompound() {
+
+        // traverse the compound form the first main carbon in the skeleton
+        // hash set is for keeping track of the visited carbons to not visit them again later
+        // depth is defined as "how many carbons away are we from the main skeleton"
+        // which is equal to 0 at start of traversal
         traverseAndPrint(compound[0], 0, new HashSet<>());
+
     }
-    private void traverseAndPrint(Element start, int depth, Set<Element> visited) {
+    private void traverseAndPrint(Element currentElement, int depth, Set<Element> visited) {
+
+        // print tabs to illustrate the depth we have travelled
         Helper.printTabs(depth);
-        System.out.print("[ ");
+
+        // print out the current carbon and get ready to print its connections
+        System.out.print(currentElement.getSymbol() + "[ ");
+
+        // a queue to store the carbons that must be visited next
         Queue<Element> toVisitCarbons = new LinkedList<>();
-        visited.add(start);
-        for(int i = 0; i < start.getConnections().length; i++) {
-            Element ithConnection = start.getConnections()[i];
+
+        visited.add(currentElement); // add the current carbon to visited hash map
+
+        // iterate through each connection of the current carbon
+        for(int i = 0; i < currentElement.getConnections().length; i++) {
+            Element ithConnection = currentElement.getConnections()[i];
             if(ithConnection != null) {
+                // if the ith connection is a carbon, add it to the queue to visit it later
                 if(Objects.equals(ithConnection.getSymbol(), "C")) {
                     toVisitCarbons.offer(ithConnection);
                 }
+
+                // print out the ith connection
                 System.out.print(ithConnection.getSymbol() + ", ");
             }
         }
-        System.out.println("] \n");
+        System.out.println("] \n"); // all connections of the current carbon are printed
+
+        // now we visit all carbons that is connected to the current carbon
+        // if and only if the carbon is not already visited
         while(!toVisitCarbons.isEmpty()) {
             Element nextCarbon = toVisitCarbons.poll();
             if(!visited.contains(nextCarbon)) {
-                if(!Helper.contains(compound, nextCarbon)) {
+                // if the next carbon to visit is not part of the main skeleton
+                // then it's depth is incremented by 1
+                if(!Helper.containsElement(compound, nextCarbon)) {
                     traverseAndPrint(nextCarbon, depth + 1, visited);
                 }
+
+                // else the depth does not change
                 else {
                     traverseAndPrint(nextCarbon, depth, visited);
                 }
             }
         }
-    }
-
-    // overriding of toString function to be able to print a Class object of class Compound
-    @Override
-    public String toString() {
-
-        StringBuilder compoundStringBuilder = new StringBuilder();
-        for (Element element : compound) {
-            compoundStringBuilder.append(element.getSymbol()).append(": ").append("[");
-            Element[] ithConnections = element.getConnections();
-            for (Element ithConnection : ithConnections) {
-                compoundStringBuilder.append(ithConnection.getSymbol()).append(": ").append(ithConnection.getId()).append(", ");
-            }
-            compoundStringBuilder.append("]\n");
-            compoundStringBuilder.append(element.getId()).append("\n|\n");
-        }
-
-        return compoundStringBuilder.toString();
 
     }
 

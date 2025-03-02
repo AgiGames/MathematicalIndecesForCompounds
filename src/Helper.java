@@ -3,6 +3,7 @@ import java.util.*;
 /*
 * Class that contains various static helper functions / variables to be used in other classes.
 */
+
 public class Helper {
 
 
@@ -45,6 +46,41 @@ public class Helper {
 
     }
 
+    // function that returns the alkane name from the given subtituent name, if it exists
+    public static String getAlkylName(String name) {
+
+        if (name == null) {
+            throw new RuntimeException("Invalid Name! (name = null)");
+        }
+
+        String[] alkyls = {
+                "methyl", "ethyl", "propyl", "butyl", "pentyl",
+                "hexyl", "heptyl", "octyl", "nonyl", "decyl"
+        };
+
+        // substituent names extracted from IUPAC names have the alkane names at the end,
+        // so we use the ends with function for each of
+        // the possible alkyl name
+        for (String alkyl : alkyls) {
+            if (name.endsWith(alkyl)) {
+                return alkyl;
+            }
+        }
+
+        return "";
+
+    }
+
+    /*
+    * function to find if the given substituent is an element or a compound
+    * so far the only compound substituents that have been implemented in this code are pure alkyls
+    * we check if the element is an alkyl, if it is not it is an element
+    */
+    public static boolean isElement(String substituent) {
+
+        return getAlkylName(substituent) == null;
+
+    }
 
     // function that extracts the substituents and their positions from the given IUPAC name
     // and returns them in a hash map
@@ -78,7 +114,7 @@ public class Helper {
         // create a substring that does not contain the alkane name, and remove the hyphens for easier processing
         String substituentsString = name.substring(0, index).replace("-", "");
 
-        // create a new hash map to store the substitient names as key and positions as value
+        // create a new hash map to store the substituent names as key and positions as value
         LinkedHashMap<String, List<Integer>> substituents = new LinkedHashMap<>();
 
         // positions is a list of integers
@@ -146,6 +182,27 @@ public class Helper {
         // and increments it, and places it the new value at the key
         map.put(key, map.getOrDefault(key, 0) + 1);
 
+    }
+
+    public static void printTabs(int numTabs) {
+
+        for(int i = 0; i < numTabs; i++) {
+            System.out.print("\t");
+        }
+
+    }
+
+    /*
+    * function that performs a linear search to see if the given element exists in the given array of elements
+    */
+    public static boolean containsElement(Element[] compound, Element element) {
+
+        for(Element ithElement: compound) {
+            if(ithElement.equals(element)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
