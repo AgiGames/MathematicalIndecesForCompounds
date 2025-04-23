@@ -17,6 +17,7 @@ public class Helper {
     private static Map<String, Pair> initializeElementReferenceMap() {
         Map<String, Pair> map = new HashMap<>();
         map.put("chloro", new Pair("Cl", 1));
+        map.put("dichloro", new Pair("Cl", 1));
         map.put("fluoro", new Pair("F", 8));
         map.put("bromo", new Pair("Br", 6));
         return map;
@@ -78,7 +79,7 @@ public class Helper {
     */
     public static boolean isElement(String substituent) {
 
-        return getAlkylName(substituent) == null;
+        return getAlkylName(substituent) == "";
 
     }
 
