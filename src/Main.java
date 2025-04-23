@@ -1,10 +1,19 @@
+import java.util.Scanner;
+
 class Main{
 
     public static void main(String[] args) {
 
-        Compound compound = new Compound("1,1-dichloroethane");
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter The IUPAC Compound: ");
+        String compoundName = sc.nextLine();
+        System.out.println();
+
+        Compound compound = new Compound(compoundName);
         compound.printCompound();
         compound.findTopologicalIndeces();
+
+        sc.close();
 
     }
 
