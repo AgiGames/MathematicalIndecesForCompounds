@@ -18,7 +18,7 @@ public class Compound {
 
     void getOrganicCompound() {
 
-        System.out.println(compoundIUPACName);
+        System.out.println("The Given IUPAC Name is: "+ compoundIUPACName);
 
         // we get the name of the alkane to specify the skeleton size
         String prefix = Helper.getAlkaneName(compoundIUPACName);
@@ -169,7 +169,7 @@ public class Compound {
         *       as any ordered mapping datastructures like a dictionary can be used
         */
         LinkedHashMap<String, List<Integer>> substituents = Helper.getSubstituents(compoundIUPACName);
-        System.out.println(substituents);
+        System.out.println("The Substituents are : " + substituents);
 
         // we iterate through each substituent in the map
         for (Map.Entry<String, List<Integer>> entry : substituents.entrySet()) {
@@ -280,7 +280,7 @@ public class Compound {
         // traverse the entire compound including substituents to find topological indeces
         traverseAndUpdateTopologicalIndeces(compound[0], visited, frequencies);
 
-        System.out.println(frequencies);
+        System.out.println("The Valency Pair Frequncies are : " + frequencies);
 
     }
     public void traverseAndUpdateTopologicalIndeces(Element currentElement, Set<Element> visited, HashMap<List<Integer>, Integer> frequencies) {
