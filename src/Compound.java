@@ -1,10 +1,10 @@
 import java.util.*;
 
 /*
-* The following class will represent the organic compound whose IUPAC name is input.
-* We consider the skeleton (biggest carbon chain) of the organic compound to be an array of elements
-* In the following comments, the biggest carbon chain would be referred to as 'skeleton'.
-*/
+ * The following class will represent the organic compound whose IUPAC name is input.
+ * We consider the skeleton (biggest carbon chain) of the organic compound to be an array of elements
+ * In the following comments, the biggest carbon chain would be referred to as 'skeleton'.
+ */
 
 public class Compound {
 
@@ -67,12 +67,12 @@ public class Compound {
         compound = new Element[skeletonSize];
 
         /*
-        * NOTES
-        * 1. since we only construct the skeleton in this function,
-        *    we by default connect all carbons in the chain to hydrogen
-        * 2. Each carbon can have maximum of 4 connections,
-        *    hence arrays of elements that represent connections will have size of 4
-        */
+         * NOTES
+         * 1. since we only construct the skeleton in this function,
+         *    we by default connect all carbons in the chain to hydrogen
+         * 2. Each carbon can have maximum of 4 connections,
+         *    hence arrays of elements that represent connections will have size of 4
+         */
 
         // we firstly give the 4 connections of the first carbon
 
@@ -155,20 +155,20 @@ public class Compound {
     }
 
     /*
-    * function to insert various substituents given in the IUPAC name to the skeleton,
-    * which before the call of this function would only contain hydrogen as connections for all carbon
-    * in the skeleton
-    * */
+     * function to insert various substituents given in the IUPAC name to the skeleton,
+     * which before the call of this function would only contain hydrogen as connections for all carbon
+     * in the skeleton
+     * */
     public void insertSubstituents() {
 
         // we start of by extracting the substituent names and positions from the IUPAC name
         // and storing it in a dictionary / map
 
         /*
-        * NOTE: the use of only the LinkedHashMap is not necessary
-        *       as any ordered mapping datastructures like a dictionary can be used
-        */
-        LinkedHashMap<String, List<Integer>> substituents = Helper.getSubstituents(compoundIUPACName);
+         * NOTE: the use of only the LinkedHashMap is not necessary
+         *       as any ordered mapping datastructures like a dictionary can be used
+         */
+        LinkedHashMap<String, List<Integer>> substituents = Helper.preprocessSubstituents(compoundIUPACName);
         System.out.println("The Substituents are : " + substituents);
 
         // we iterate through each substituent in the map
@@ -261,9 +261,9 @@ public class Compound {
     }
 
     /*
-    * function that finds the topological indeces
-    * the computation in written form can be viewed in the read me section of the GitHub repository
-    */
+     * function that finds the topological indeces
+     * the computation in written form can be viewed in the read me section of the GitHub repository
+     */
     public void findTopologicalIndeces() {
 
         // we use a search algorithm akin to breadth first search (BFS)
@@ -280,7 +280,7 @@ public class Compound {
         // traverse the entire compound including substituents to find topological indeces
         traverseAndUpdateTopologicalIndeces(compound[0], visited, frequencies);
 
-        System.out.println("The Valency Pair Frequncies are : " + frequencies);
+        System.out.println("The Valency Pair Frequencies are : " + frequencies);
 
     }
     public void traverseAndUpdateTopologicalIndeces(Element currentElement, Set<Element> visited, HashMap<List<Integer>, Integer> frequencies) {
@@ -341,9 +341,9 @@ public class Compound {
     }
 
     /*
-    * function to print out the compound along with main carbons, substituents and all connections
-    * we approach this problem using the same traversal method we used to find the topological indeces
-    */
+     * function to print out the compound along with main carbons, substituents and all connections
+     * we approach this problem using the same traversal method we used to find the topological indeces
+     */
     public void printCompound() {
 
         // traverse the compound form the first main carbon in the skeleton

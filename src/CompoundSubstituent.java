@@ -1,16 +1,16 @@
 /*
-* The following class represents all substituents which are made of more than one type of atom.
-* the name 'compound' is misleading as this class would also represent substituents such as
-* NH2 which is a molecule.
-* I was not able to find a better name for this class, so we shall ignore that inconsistency.
-*/
+ * The following class represents all substituents which are made of more than one type of atom.
+ * the name 'compound' is misleading as this class would also represent substituents such as
+ * NH2 which is a molecule.
+ * I was not able to find a better name for this class, so we shall ignore that inconsistency.
+ */
 
 /*
-* NOTE:
-* The following class's implementation as of (2nd March 2025) which is the latest date of change only considers
-* pure alkyls as the only form of compound substituents
-* thus continue reading with this in mind
-*/
+ * NOTE:
+ * The following class's implementation as of (2nd March 2025) which is the latest date of change only considers
+ * pure alkyls as the only form of compound substituents
+ * thus continue reading with this in mind
+ */
 
 public class CompoundSubstituent {
 

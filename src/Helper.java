@@ -1,17 +1,17 @@
 import java.util.*;
 
 /*
-* Class that contains various static helper functions / variables to be used in other classes.
-*/
+ * Class that contains various static helper functions / variables to be used in other classes.
+ */
 
 public class Helper {
 
 
     /*
-    * elementReferenceMap contains the symbol and valency of various substituents as the value, with the key being
-    * how the substituents are represented in IUPAC names
-    * the entire structure of this map is subject to change in the future
-    */
+     * elementReferenceMap contains the symbol and valency of various substituents as the value, with the key being
+     * how the substituents are represented in IUPAC names
+     * the entire structure of this map is subject to change in the future
+     */
     public static Map<String, Pair> elementReferenceMap = initializeElementReferenceMap();
 
     private static Map<String, Pair> initializeElementReferenceMap() {
@@ -73,10 +73,10 @@ public class Helper {
     }
 
     /*
-    * function to find if the given substituent is an element or a compound
-    * so far the only compound substituents that have been implemented in this code are pure alkyls
-    * we check if the element is an alkyl, if it is not it is an element
-    */
+     * function to find if the given substituent is an element or a compound
+     * so far the only compound substituents that have been implemented in this code are pure alkyls
+     * we check if the element is an alkyl, if it is not it is an element
+     */
     public static boolean isElement(String substituent) {
 
         return getAlkylName(substituent) == "";
@@ -194,8 +194,8 @@ public class Helper {
     }
 
     /*
-    * function that performs a linear search to see if the given element exists in the given array of elements
-    */
+     * function that performs a linear search to see if the given element exists in the given array of elements
+     */
     public static boolean containsElement(Element[] compound, Element element) {
 
         for(Element ithElement: compound) {
@@ -204,6 +204,49 @@ public class Helper {
             }
         }
         return false;
+    }
+
+    /*
+     * function to remove prefixes like "di" and "tri" from substituent names as that is not needed
+     */
+    public static LinkedHashMap<String, List<Integer>> preprocessSubstituents(String IUPACname) {
+
+        // we first get the substituents from the given IUPAC names
+        LinkedHashMap<String, List<Integer>> substituents = getSubstituents(IUPACname);
+
+        // multiplicative prefixes to strip
+        String[] prefixes = { "mono", "di", "tri", "tetra", "penta", "hexa", "hepta", "octa", "nona", "deca" };
+
+        // we make a new map to store the results
+        LinkedHashMap<String, List<Integer>> cleanedMap = new LinkedHashMap<>();
+
+        // iterate through each entry in the old map
+        for (Map.Entry<String, List<Integer>> entry : substituents.entrySet()) {
+            String rawName = entry.getKey(); // get the unprocessed name
+            List<Integer> positionsList = entry.getValue(); // get the positions for that name
+
+            // remove the prefix from the name
+            String cleanName = rawName;
+            for (String prefix : prefixes) {
+                if (rawName.startsWith(prefix)) {
+                    cleanName = rawName.substring(prefix.length());
+                    break;
+                }
+            }
+
+            // merge positions if name already exists (e.g., multiple substituent groups of same type like
+            // chloro already existing
+            // and dichloro being changed to chloro)
+            if (cleanedMap.containsKey(cleanName)) {
+                cleanedMap.get(cleanName).addAll(positionsList);
+            } else { // else just put the name and it's respective positions
+                cleanedMap.put(cleanName, new ArrayList<>(positionsList));
+            }
+        }
+
+        // return the final map
+        return cleanedMap;
+
     }
 
 }
